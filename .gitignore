@@ -1,8 +1,5 @@
 # Ignore raw dataset folders
 Raw Data/
-Raw dataset/
 dataset/
-reference_data/
-student_data/
-.vscode/settings.json
-model_dataset/
+.vscode/
+
