@@ -1,21 +1,52 @@
-# Sinhala Handwriting Checker — Edge-Lite (MobileNetV3 + 5-Rule Feedback)
+# Sinhala Handwriting Recognition 📝🇱🇰
 
-Tiny, explainable pipeline to check **Grade 2–3 Sinhala** handwriting on **5-rule** paper.  
-It segments a word, classifies letters/graphemes, and gives simple **“on the line”** feedback.  
-Designed to run **in Google Colab** and export to **TFLite** for mobile/web.
+A computer vision and deep learning project for **Sinhala handwritten character recognition**, covering **image preprocessing, segmentation, and classification** using **TensorFlow/Keras** and **OpenCV**.
 
 ---
 
-## ✨ Features
+## 📌 Project Overview
 
-- **Edge-Lite classifier**: MobileNetV3-Small @ **128×128**, grayscale→RGB  
-- **Data-light** friendly (works with small datasets + augmentations)  
-- **Connected Components** segmentation (OpenCV) for word crops  
-- **5-rule checks**: baseline band compliance, quick overshoot flags  
-- **Two-phase training**: head warmup → partial unfreeze fine-tune  
-- **Keras 3 saving**: `.keras` model file + `SavedModel` export  
-- **TFLite**: dynamic-range + optional **INT8** quantization  
-- **Gradio demo**: upload an image → JSON results + visual overlay  
-- Optional next step: **multi-head pili** model (type + zone)
+This project implements an end-to-end pipeline for recognizing handwritten Sinhala characters.  
+It processes raw handwritten images, segments individual characters, and classifies them using a CNN-based deep learning model.
+
+### Key Objectives
+- Preprocess handwritten Sinhala text images
+- Segment words and individual characters
+- Classify Sinhala characters using deep learning
+- Support lightweight and mobile-friendly models (TFLite-ready)
+
+---
+
+## 🧠 Features
+
+- ✅ Grayscale and Canny-based preprocessing  
+- ✅ Horizontal projection–based segmentation  
+- ✅ CNN-based character classification  
+- ✅ Standardized **128×128** input pipeline  
+- ✅ Batch prediction with preview saving  
+- ✅ Modular, reusable, and notebook-friendly code  
+
+---
+
+## 🗂️ Project Structure
+
+```text
+├── dataset/
+│   ├── train/
+│   ├── val/
+│   └── test/
+├── segmented_letters/
+├── models/
+│   └── sinhala_model.keras
+├── notebooks/
+│   ├── train.ipynb
+│   ├── segmentation.ipynb
+│   └── inference.ipynb
+├── utils/
+│   ├── preprocessing.py
+│   ├── segmentation.py
+│   └── visualization.py
+├── requirements.txt
+└── README.md
 
 ---
