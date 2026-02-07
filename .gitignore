@@ -1,5 +1,12 @@
 # Ignore raw dataset folders
 Raw Data/
 dataset/
+
+# Ignore model checkpoints and logs
+checkpoints/
 .vscode/
+__pycache__/
+
+# 
+segmented_letters/
 
