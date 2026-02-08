@@ -17,7 +17,14 @@ def img_processing(img):
         threshold2=60
     )
 
-    return processed_img
+    thresh = cv2.adaptiveThreshold(
+        processed_img, 255,
+        cv2.ADAPTIVE_THRESH_MEAN_C,
+        cv2.THRESH_BINARY_INV,
+        15, 4
+    )
+
+    return thresh
 
 
 # To load an image, perform pre-processing, and display the Canny edge image using Matplotlib.
