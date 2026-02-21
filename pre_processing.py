@@ -3,25 +3,16 @@ import matplotlib.pyplot as plt
 
 # To perform pre-processing on an image, including converting to grayscale, applying Gaussian blur, and performing Canny edge detection.
 def img_processing(img):
-    # convert to grayscale
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # smooth (important for pencil)
-    img = cv2.GaussianBlur(img, (5, 5), 0)
+    blur = cv2.GaussianBlur(gray, (3, 3), 0)
 
-
-    # Canny edge detection
-    processed_img = cv2.Canny(
-        img,
-        threshold1=60,
-        threshold2=60
-    )
-
-    thresh = cv2.adaptiveThreshold(
-        processed_img, 255,
-        cv2.ADAPTIVE_THRESH_MEAN_C,
-        cv2.THRESH_BINARY_INV,
-        15, 4
+    # Otsu threshold (simpler & stable)
+    _, thresh = cv2.threshold(
+        blur,
+        0,
+        255,
+        cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
     )
 
     return thresh
