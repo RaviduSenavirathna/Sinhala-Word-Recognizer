@@ -1,3 +1,4 @@
+import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
@@ -18,21 +19,14 @@ def img_processing(img):
     return thresh
 
 
-def processed_img_crop(img):
+def tight_crop(img):
+    ys, xs = np.where(img > 0)
 
-    thresh = img_processing(img)
+    if len(xs) == 0:
+        return img
 
-    # Find contours
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    return img[ys.min()-2:ys.max()+1, xs.min()-1:xs.max()+2]
 
-    if contours:
-        largest_contour = max(contours, key=cv2.contourArea)
-        x, y, w, h = cv2.boundingRect(largest_contour)
-        cropped = thresh[y:y+h, x:x+w]
-    else:
-        cropped = thresh
-
-    return cropped
 
 # To load an image, perform pre-processing, and display the Canny edge image using Matplotlib.
 def processed_img_preview(img_path):
