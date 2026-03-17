@@ -72,7 +72,7 @@ Character Prediction
 # Dataset Structure
 
 The dataset must be organized by **class folders**:
-
+```
 dataset/
 ├── ක/
 │ ├── img1.png
@@ -89,7 +89,7 @@ dataset/
 ├── ල/
 ├── ස/
 └── හ/
-
+```
 
 Each folder contains images of a **single Sinhala character**.
 
@@ -99,6 +99,7 @@ Each folder contains images of a **single Sinhala character**.
 
 Sinhala-Handwriting-Recognition/
 
+```
 ├── dataset/ # Raw dataset
 ├── dataset_processed/ # Preprocessed dataset
 ├── segmented_dataset/ # Character segmented images
@@ -114,7 +115,7 @@ Sinhala-Handwriting-Recognition/
 ├── train.ipynb # Training notebook
 ├── requirements.txt
 └── README.md
-
+```
 
 ---
 
