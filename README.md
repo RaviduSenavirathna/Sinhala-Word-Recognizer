@@ -85,20 +85,18 @@ Each folder contains images of a **single Sinhala character**.
 ```
 Sinhala-Handwriting-Recognition/
 ├── dataset/ # Raw dataset
-├── dataset_processed/       # Preprocessed dataset
-├── segmented_dataset/       # Character segmented images
+├── dataset_processed/         # Preprocessed dataset
+├── segmented_dataset/         # Character segmented images
 │
-├── models/
-│ └── sinhala_model.keras
+├── dataset.ipynb              # Dataset loading & preparation
+├── word_segmenting.ipynb      # Word & character segmentation
+├── model_training.ipynb       # CNN model training
+├── predict.ipynb              # Inference & predictions
 │
-├── preprocessing.py         # Image preprocessing
-├── segmentation.py          # Character segmentation
-├── train.py                 # Model training
-├── predict.py               # Character prediction
-│
-├── train.ipynb              # Training notebook
-├── requirements.txt
-└── README.md
+├── pre_processing.py          # Image preprocessing utilities
+├── requirements.txt           # Dependencies
+├── README.md                  # Project documentation
+└── LICENSE
 ```
 
 ---
