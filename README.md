@@ -106,7 +106,7 @@ Sinhala-Handwriting-Recognition/
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Sinhala-Word-Recognizer.git
+git clone https://github.com/RaviduSenavirathna/Sinhala-Word-Recognizer.git
 cd Sinhala-Word-Recognizer
 ```
 
