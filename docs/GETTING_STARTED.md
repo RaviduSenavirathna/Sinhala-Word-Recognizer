@@ -109,3 +109,47 @@ Sinhala-Word-Recognizer/
 - Take test image as input
 - Preprocess → Segment → Predict
 - Output recognized characters
+
+
+## Tips & Recommendations
+- Start Small: Begin with a subset of characters (5-10) to verify the pipeline works
+- GPU Training: Use Google Colab for faster training (10-50x faster)
+- Data Quality: The more clean, consistent training samples you have, the better accuracy
+- Batch Size: Adjust batch size based on your available memory (default: 32)
+- Epochs: Start with 20-50 epochs and monitor validation accuracy
+- Image Size: 128×128 is optimal for this architecture (avoid changing it)
+
+
+## Common Issues
+### Issue: "ModuleNotFoundError: No module named 'tensorflow'"
+Solution: Reinstall requirements
+```bash
+pip install --upgrade tensorflow keras opencv-python numpy matplotlib
+```
+
+### Issue: Out of memory (OOM) errors
+Solution:
+- Reduce batch size in model_training.ipynb
+- Use Colab with GPU instead of local CPU
+- Train on a smaller subset of data first
+
+### Issue: Low accuracy after training
+Solution:
+- Ensure dataset is balanced (similar number of samples per character)
+- Check if images are clear and well-segmented
+- Increase number of training epochs
+- Data augmentation (rotation, scaling) can help
+
+For more troubleshooting, see `TROUBLESHOOTING.md`
+
+## Next Steps
+- Read the API Reference to understand available functions
+- Check the Tutorial for detailed step-by-step guide
+- Explore the Jupyter notebooks to understand the code
+- Customize parameters for your specific use case
+
+
+## Need Help?
+- Check `TROUBLESHOOTING.md` for common issues
+- Review existing issues on GitHub
+- Feel free to open a new issue with details about your problem
