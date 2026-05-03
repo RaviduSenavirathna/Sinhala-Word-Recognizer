@@ -84,8 +84,8 @@ Loads an image, applies preprocessing, and displays the result using Matplotlib.
 
 **Raises:**
 - ValueError: If image file not found at path
-- Example:
 
+Example:
 ```python
 from pre_processing import processed_img_preview
 
@@ -97,3 +97,58 @@ Display Details:
 - Colormap: Grayscale
 - Axes: Hidden for cleaner view
 - Title: "Processed Image"
+
+
+# Notebook Functions
+
+## dataset.ipynb
+Main functions available in the dataset preparation notebook:
+
+**Load and Explore Dataset**
+```python
+# Lists all character classes
+classes = os.listdir('dataset')
+print(f"Found {len(classes)} character classes")
+
+# Shows sample count per character
+for char in classes:
+    count = len(os.listdir(f'dataset/{char}'))
+    print(f"{char}: {count} samples")
+```
+
+**Create Processed Dataset**
+Applies preprocessing to all images and saves to `dataset_processed/`
+- Input: Raw images from `dataset/`
+- Output: Processed binary images in `dataset_processed/`
+- Processing: Uses `img_processing()` function
+
+**Data Visualization**
+```python
+# Display sample images from each class
+# Shows original and processed versions side-by-side
+```
+
+
+## word_segmenting.ipynb
+Character segmentation and standardization functions.
+
+**Vertical Projection Segmentation**
+Splits multi-character words into individual characters using vertical projection.
+
+```python
+# Key Process:
+# 1. Calculate vertical projection (sum of white pixels per column)
+# 2. Find valleys (low projection values) = character boundaries
+# 3. Extract character bounding boxes
+# 4. Resize to 128×128
+```
+
+**Image Resizing & Padding**
+```python
+# Resizes character to 128×128 while maintaining aspect ratio
+# Adds padding to maintain shape integrity
+```
+**Output**
+- Directory: `segmented_dataset/`
+- Format: Individual character images, 128×128 pixels
+- Each character organized by class
