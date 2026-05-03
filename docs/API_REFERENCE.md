@@ -271,3 +271,65 @@ def predict_word(word_image_path, model):
     4. Combine predictions
     """
 ```
+
+### Constants & Configuration
+**Image Dimensions**
+- Standard size: 128×128 pixels
+- Color space: Grayscale (1 channel)
+- Normalization: [0, 1] (divide by 255)
+
+**Processing Parameters**
+- Gaussian blur kernel: (3, 3)
+- Threshold method: Otsu's (automatic)
+- Binary inversion: Yes (white foreground)
+
+**Model Parameters**
+- Input shape: (128, 128, 1)
+- Output activation: Softmax (multiclass)
+- Training optimizer: Adam
+- Learning rate: 0.001 (default)
+
+**Error Codes & Exceptions**
+|   Error   |   Cause   |	Solution    |
+| --------- | --------- | ------------- |
+|   ValueError: Image not found    |	Invalid file path   |	Check file path and extension   |
+|   OOM (Out of Memory) |   Batch size too large    |	Reduce batch_size in config |
+|   Shape mismatch  |	Input not 128×128   |	Verify segmentation step    |
+|   Low accuracy    |	Insufficient training data  |	Collect more samples    |
+
+
+
+### Best Practices
+Always preprocess before segmentation
+
+```python
+processed = img_processing(img)
+cropped = tight_crop(processed)
+```
+
+Maintain 128×128 standard
+- Don't change input dimensions after model training
+- Resize with aspect ratio preservation
+
+Use validation split during training
+- Prevents overfitting
+- Monitor validation accuracy
+
+Save model checkpoints
+```python
+model.save(f'checkpoint_epoch_{epoch}.h5')
+```
+
+Test on diverse data
+- Different writing styles
+- Various image qualities
+- Different character sizes
+
+
+## Version Information
+- TensorFlow: 2.10+
+- OpenCV: 4.5+
+- NumPy: 1.20+
+- Python: 3.7+
+
+For more information, see the main README.md or GETTING_STARTED.md.
