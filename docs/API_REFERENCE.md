@@ -152,3 +152,122 @@ Splits multi-character words into individual characters using vertical projectio
 - Directory: `segmented_dataset/`
 - Format: Individual character images, 128×128 pixels
 - Each character organized by class
+
+
+
+## model_training.ipynb
+Deep learning model training functions.
+
+**Model Architecture**
+```python
+# CNN Architecture:
+model = tf.keras.Sequential([
+    # Input layer: 128×128×1 (grayscale)
+    tf.keras.layers.Conv2D(32, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D((2,2)),
+    
+    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+    tf.keras.layers.MaxPooling2D((2,2)),
+    
+    tf.keras.layers.Conv2D(128, (3,3), activation='relu'),
+    
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(256, activation='relu'),
+    tf.keras.layers.Dropout(0.5),
+    
+    # Output: Number of Sinhala characters
+    tf.keras.layers.Dense(num_classes, activation='softmax')
+])
+```
+
+**Training**
+```python
+# Compile model
+model.compile(
+    optimizer='adam',
+    loss='categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Train on segmented dataset
+history = model.fit(
+    train_data,
+    epochs=50,
+    batch_size=32,
+    validation_split=0.2
+)
+```
+
+**Model Saving**
+```python
+# Save trained weights
+model.save('sinhala_model.h5')
+```
+
+**Hyperparameters:**
+- Optimizer: Adam
+- Loss: Categorical Crossentropy
+- Learning rate: 0.001 (default)
+- Batch size: 32
+- Epochs: 50 (adjustable)
+- Validation split: 0.2 (20% validation data)
+
+
+## predict.ipynb
+Inference and prediction functions.
+
+**Load Model**
+```python
+import tensorflow as tf
+
+model = tf.keras.models.load_model('sinhala_model.h5')
+```
+
+**Single Image Prediction**
+```python
+def predict_character(img_path, model):
+    """
+    Predict Sinhala character from image
+    
+    Parameters:
+    - img_path: Path to test image
+    - model: Loaded TensorFlow model
+    
+    Returns:
+    - character: Predicted Sinhala character
+    - confidence: Prediction confidence (0-1)
+    """
+    # Load and preprocess image
+    img = cv2.imread(img_path)
+    processed = img_processing(img)
+    cropped = tight_crop(processed)
+    
+    # Resize to 128×128
+    resized = cv2.resize(cropped, (128, 128))
+    
+    # Normalize
+    normalized = resized / 255.0
+    
+    # Add batch dimension
+    batch = np.expand_dims(normalized, axis=[0, -1])
+    
+    # Predict
+    prediction = model.predict(batch)
+    
+    return character_class, confidence
+```
+
+**Batch Prediction**
+
+```python
+def predict_word(word_image_path, model):
+    """
+    Recognize full word from image
+    
+    Process:
+    1. Preprocess image
+    2. Segment characters
+    3. Predict each character
+    4. Combine predictions
+    """
+```
