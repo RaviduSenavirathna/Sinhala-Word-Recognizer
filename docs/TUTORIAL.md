@@ -456,3 +456,196 @@ print(f"\nTotal characters segmented: {sum(stats.values())}")
 
 
 
+
+# Model Training
+
+### Setting Up Training
+
+Open `model_training.ipynb`:
+
+**Step 1: Load Segmented Dataset**
+```python
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+import os
+from pathlib import Path
+
+# Load dataset
+dataset_dir = 'segmented_dataset'
+classes = sorted(os.listdir(dataset_dir))
+
+print(f"Classes found: {classes}")
+print(f"Total classes: {len(classes)}\n")
+
+# Load images and labels
+X = []  # Images
+y = []  # Labels (class indices)
+
+for class_idx, character in enumerate(classes):
+    char_dir = os.path.join(dataset_dir, character)
+    
+    for img_file in os.listdir(char_dir):
+        try:
+            img_path = os.path.join(char_dir, img_file)
+            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+            
+            # Normalize to [0, 1]
+            img = img / 255.0
+            
+            # Add channel dimension (needed for Conv2D)
+            img = np.expand_dims(img, axis=-1)
+            
+            X.append(img)
+            y.append(class_idx)
+        
+        except Exception as e:
+            print(f"Error loading {img_path}: {e}")
+
+X = np.array(X)
+y = np.array(y)
+
+print(f"Dataset loaded:")
+print(f"  X shape: {X.shape}  # (samples, height, width, channels)")
+print(f"  y shape: {y.shape}  # (samples,)")
+print(f"  Unique classes: {len(np.unique(y))}")
+```
+
+**Step 2: Split into Train/Validation**
+```python
+from sklearn.model_selection import train_test_split
+
+# Split 80% train, 20% validation
+X_train, X_val, y_train, y_val = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+print(f"Training set: {X_train.shape}")
+print(f"Validation set: {X_val.shape}")
+
+# One-hot encode labels (required for categorical_crossentropy)
+from tensorflow.keras.utils import to_categorical
+y_train_encoded = to_categorical(y_train, num_classes=len(classes))
+y_val_encoded = to_categorical(y_val, num_classes=len(classes))
+```
+
+**Step 3: Build CNN Model**
+```python
+model = keras.Sequential([
+    # Block 1
+    keras.layers.Conv2D(32, (3, 3), activation='relu', 
+                       input_shape=(128, 128, 1)),
+    keras.layers.MaxPooling2D((2, 2)),
+    
+    # Block 2
+    keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    keras.layers.MaxPooling2D((2, 2)),
+    
+    # Block 3
+    keras.layers.Conv2D(128, (3, 3), activation='relu'),
+    keras.layers.MaxPooling2D((2, 2)),
+    
+    # Dense layers
+    keras.layers.Flatten(),
+    keras.layers.Dense(256, activation='relu'),
+    keras.layers.Dropout(0.5),  # Prevent overfitting
+    
+    # Output layer
+    keras.layers.Dense(len(classes), activation='softmax')
+])
+
+model.summary()
+```
+
+Output:
+```
+Model: "sequential"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #
+=================================================================
+ conv2d (Conv2D)             (None, 126, 126, 32)     320
+ max_pooling2d (MaxPooling2D (None, 63, 63, 32)       0
+ conv2d_1 (Conv2D)           (None, 61, 61, 64)       18496
+ max_pooling2d_1 (MaxPooling(None, 30, 30, 64)       0
+ ...
+ dense_1 (Dense)             (None, 256)              33280
+ dropout (Dropout)           (None, 256)              0
+ dense_2 (Dense)             (None, 10)               2570
+=================================================================
+Total params: 328,842
+```
+
+**Step 4: Compile Model**
+```python
+model.compile(
+    optimizer='adam',           # Learning algorithm
+    loss='categorical_crossentropy',  # Loss function
+    metrics=['accuracy']         # Monitor accuracy
+)
+```
+
+**Step 5: Train Model**
+```python
+# Train on GPU (Colab) or CPU
+history = model.fit(
+    X_train, y_train_encoded,
+    epochs=50,                   # Number of iterations through data
+    batch_size=32,              # Samples per gradient update
+    validation_data=(X_val, y_val_encoded),
+    verbose=1                   # Print progress
+)
+
+# Output example:
+# Epoch 1/50
+# 45/45 [==============================] - 12s 270ms/step - loss: 2.3891 - accuracy: 0.1241 - val_loss: 2.2956 - val_accuracy: 0.1543
+# Epoch 2/50
+# 45/45 [==============================] - 10s 220ms/step - loss: 2.1893 - accuracy: 0.2156 - val_loss: 1.8976 - val_accuracy: 0.3821
+# ...
+```
+
+**Step 6: Visualize Training Progress**
+```python
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(12, 4))
+
+# Accuracy
+plt.subplot(1, 2, 1)
+plt.plot(history.history['accuracy'], label='Train')
+plt.plot(history.history['val_accuracy'], label='Validation')
+plt.title('Model Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid()
+
+# Loss
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train')
+plt.plot(history.history['val_loss'], label='Validation')
+plt.title('Model Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid()
+
+plt.tight_layout()
+plt.show()
+
+# Print final metrics
+print(f"Final Training Accuracy: {history.history['accuracy'][-1]:.4f}")
+print(f"Final Validation Accuracy: {history.history['val_accuracy'][-1]:.4f}")
+```
+
+**Step 7: Save Trained Model**
+```python
+# Save model weights
+model.save('sinhala_model.h5')
+
+# Or save in newer format
+model.save('sinhala_model')
+
+print("✓ Model saved successfully!")
+```
+
+
