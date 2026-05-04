@@ -255,3 +255,204 @@ You should see:
 - Before: Noisy, colored, variable contrast
 - After: Clean, binary (only 0 and 255 values), consistent
 
+
+# Character Segmentation
+
+### What is Segmentation?
+**Problem**: Your dataset contains full words/lines, but you need individual characters.
+
+**Solution**: Automatically split words into characters using Vertical Projection.
+
+## Vertical Projection Method
+
+```
+Word Image: "ශ්‍ර"
+    ↓
+Calculate: Sum of white pixels in each column
+    ↓
+Find valleys: Columns with few/no pixels
+    ↓
+Identify boundaries: Gaps between characters
+    ↓
+Extract regions: Individual character bounding boxes
+    ↓
+Resize: All to 128×128 pixels
+    ↓
+Output: Individual character images
+```
+
+### Implementing Segmentation
+
+Open `word_segmenting.ipynb` and follow these steps:
+
+**Step 1: Load Preprocessed Image**
+```python
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load a preprocessed word image
+img = cv2.imread('dataset_processed/ක/001.png', cv2.IMREAD_GRAYSCALE)
+
+plt.imshow(img, cmap='gray')
+plt.title("Input: Preprocessed Word")
+plt.show()
+```
+
+**Step 2: Calculate Vertical Projection**
+```python
+# Sum white pixels in each column
+vertical_projection = np.sum(img > 0, axis=0)
+
+# Plot projection
+plt.figure(figsize=(12, 3))
+plt.subplot(1, 2, 1)
+plt.imshow(img, cmap='gray')
+plt.title("Word Image")
+
+plt.subplot(1, 2, 2)
+plt.plot(vertical_projection)
+plt.title("Vertical Projection")
+plt.xlabel("Column")
+plt.ylabel("White Pixels")
+plt.show()
+
+# Output example:
+# [0, 0, 15, 23, 18, 12, 0, 0, 5, 20, 22, ...]
+#                       ↑ Valley = boundary
+```
+
+**Step 3: Find Character Boundaries**
+```python
+# Find columns with no pixels (valleys)
+threshold = 5  # Minimum pixels to consider "character"
+valleys = np.where(vertical_projection < threshold)[0]
+
+# Find contiguous regions of valleys
+boundaries = []
+in_valley = False
+
+for i in range(len(vertical_projection)):
+    is_valley = vertical_projection[i] < threshold
+    
+    if is_valley and not in_valley:
+        boundaries.append(('start', i))
+        in_valley = True
+    elif not is_valley and in_valley:
+        boundaries.append(('end', i))
+        in_valley = False
+
+print("Character boundaries found at columns:", boundaries)
+```
+
+**Step 4: Extract and Resize Characters**
+```python
+def segment_word_to_characters(img_path, output_dir):
+    """
+    Segment a word image into individual characters
+    """
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    
+    # Vertical projection
+    projection = np.sum(img > 0, axis=0)
+    
+    # Find valleys
+    threshold = 5
+    boundaries = []
+    in_valley = False
+    
+    for i in range(len(projection)):
+        is_valley = projection[i] < threshold
+        
+        if is_valley and not in_valley:
+            boundaries.append(i)
+            in_valley = True
+        elif not is_valley and in_valley:
+            boundaries.append(i)
+            in_valley = False
+    
+    # Extract characters
+    characters = []
+    for j in range(0, len(boundaries)-1, 2):
+        start = boundaries[j]
+        end = boundaries[j+1]
+        
+        # Extract region
+        char_img = img[:, start:end]
+        
+        # Resize to 128×128 maintaining aspect ratio
+        char_resized = cv2.resize(char_img, (128, 128))
+        
+        characters.append(char_resized)
+    
+    return characters
+
+# Usage
+chars = segment_word_to_characters('dataset_processed/ක/001.png', 'segmented_dataset')
+
+# Visualize segmented characters
+plt.figure(figsize=(15, 2))
+for i, char in enumerate(chars):
+    plt.subplot(1, len(chars), i+1)
+    plt.imshow(char, cmap='gray')
+    plt.axis('off')
+plt.suptitle("Segmented Characters")
+plt.show()
+```
+
+**Step 5: Batch Segment All Images**
+```python
+import os
+from pathlib import Path
+
+source_dir = 'dataset_processed'
+target_dir = 'segmented_dataset'
+
+Path(target_dir).mkdir(exist_ok=True)
+
+# Track statistics
+stats = {}
+
+for character in os.listdir(source_dir):
+    char_source = os.path.join(source_dir, character)
+    char_target = os.path.join(target_dir, character)
+    
+    Path(char_target).mkdir(exist_ok=True)
+    
+    count = 0
+    
+    for img_file in os.listdir(char_source):
+        try:
+            img_path = os.path.join(char_source, img_file)
+            chars = segment_word_to_characters(img_path, char_target)
+            
+            # Save each segmented character
+            for idx, char_img in enumerate(chars):
+                output_name = f"{img_file[:-4]}_{idx}.png"
+                output_path = os.path.join(char_target, output_name)
+                cv2.imwrite(output_path, char_img)
+                count += 1
+        
+        except Exception as e:
+            print(f"Error: {img_path} - {e}")
+    
+    stats[character] = count
+    print(f"✓ {character}: {count} characters segmented")
+
+print(f"\nTotal characters segmented: {sum(stats.values())}")
+```
+
+
+### Segmentation Troubleshooting
+
+**Problem:** Too many false segments (over-segmentation)
+- **Solution:** Increase threshold value (e.g., 10 instead of 5)
+
+**Problem:** Characters grouped together (under-segmentation)
+- **Solution:** Decrease threshold value
+
+**Problem:** Missing characters
+- **Solution:** Check if preprocessing was effective; characters might be too faint
+
+
+
