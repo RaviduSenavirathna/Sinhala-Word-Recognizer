@@ -770,3 +770,98 @@ plt.show()
 
 
 
+
+# Tips & Optimization
+
+### Training Optimization
+
+1. Use GPU
+- Google Colab: Free T4 GPU
+- Training 10-50× faster than CPU
+- Enable in Colab: Runtime → Change runtime type → GPU
+
+2. Batch Size
+- Larger batch = faster training, more memory
+- Smaller batch = slower training, more accurate
+- Recommended: 16-64
+
+3. Learning Rate
+```python 
+optimizer = keras.optimizers.Adam(learning_rate=0.001) 
+```
+
+4. Epochs
+- Too few: Underfitting (low accuracy)
+- Too many: Overfitting (high train accuracy, low test accuracy)
+- Use early stopping:
+
+```python
+callback = keras.callbacks.EarlyStopping(
+    monitor='val_loss',
+    patience=5,  # Stop if no improvement for 5 epochs
+    restore_best_weights=True
+)
+```
+
+### Improving Accuracy
+
+1. Data Quality
+- Clean, consistent images
+- Balanced classes (similar samples per character)
+- Remove blurry/damaged images
+
+2. Data Augmentation
+```python
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+datagen = ImageDataGenerator(
+    rotation_range=15,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    zoom_range=0.2
+)
+```
+
+3. Model Architecture
+- More layers = more capacity but longer training
+- More filters = better feature extraction
+- Dropout = prevent overfitting
+
+4. Preprocessing
+- Ensure clean segmentation
+- Consistent image sizes
+- Proper normalization
+
+### Deployment Tips
+
+1. Convert to Mobile Format
+```python
+converter = tf.lite.TFLiteConverter.from_saved_model('sinhala_model')
+tflite_model = converter.convert()
+
+with open('model.tflite', 'wb') as f:
+    f.write(tflite_model)
+```
+
+2. Save Class Mapping
+```python
+import json
+
+class_mapping = {idx: char for idx, char in enumerate(classes)}
+
+with open('classes.json', 'w', encoding='utf-8') as f:
+    json.dump(class_mapping, f, ensure_ascii=False)
+```
+
+3. Create Inference Pipeline
+```python
+class SinhalaRecognizer:
+    def __init__(self, model_path, classes_path):
+        self.model = tf.keras.models.load_model(model_path)
+        with open(classes_path) as f:
+            self.classes = json.load(f)
+    
+    def recognize(self, image_path):
+        # Load → Preprocess → Segment → Predict
+        pass
+```
