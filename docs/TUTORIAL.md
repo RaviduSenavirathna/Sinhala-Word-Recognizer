@@ -649,3 +649,124 @@ print("✓ Model saved successfully!")
 ```
 
 
+
+
+# Making Predictions
+
+### Using Trained Model
+
+Open `predict.ipynb`:
+
+**Step 1: Load Model**
+```python
+import tensorflow as tf
+import cv2
+import numpy as np
+
+# Load trained model
+model = tf.keras.models.load_model('sinhala_model.h5')
+
+# Load class names
+classes = sorted(os.listdir('segmented_dataset'))
+print(f"Classes: {classes}")
+```
+
+**Step 2: Predict Single Image**
+```python
+def predict_character(img_path):
+    """
+    Predict Sinhala character from single image
+    """
+    # Load image
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    
+    # Preprocess (same as training)
+    img = img / 255.0
+    img = np.expand_dims(img, axis=-1)
+    
+    # Add batch dimension
+    img_batch = np.expand_dims(img, axis=0)
+    
+    # Predict
+    prediction = model.predict(img_batch, verbose=0)
+    
+    # Get class with highest probability
+    class_idx = np.argmax(prediction[0])
+    confidence = prediction[0][class_idx]
+    character = classes[class_idx]
+    
+    return character, confidence, prediction[0]
+
+# Test
+test_img = 'segmented_dataset/ක/001_0.png'
+char, conf, probs = predict_character(test_img)
+
+print(f"Predicted: {char}")
+print(f"Confidence: {conf:.2%}")
+print(f"Top 3 predictions:")
+for idx in np.argsort(probs)[-3:][::-1]:
+    print(f"  {classes[idx]}: {probs[idx]:.2%}")
+```
+
+**Step 3: Predict Multiple Images**
+```python
+def predict_directory(directory_path):
+    """
+    Predict characters from all images in directory
+    """
+    results = []
+    
+    for img_file in os.listdir(directory_path):
+        try:
+            img_path = os.path.join(directory_path, img_file)
+            char, conf, _ = predict_character(img_path)
+            results.append({
+                'file': img_file,
+                'prediction': char,
+                'confidence': conf
+            })
+        except Exception as e:
+            print(f"Error predicting {img_file}: {e}")
+    
+    return results
+
+# Test on a directory
+test_results = predict_directory('test_images')
+
+# Display results
+for result in test_results[:10]:  # Show first 10
+    print(f"{result['file']}: {result['prediction']} ({result['confidence']:.2%})")
+```
+
+**Step 4: Evaluate on Test Set**
+```python
+# Load test data
+X_test = []
+y_test = []
+
+# ... (load images)
+
+# Predict
+y_pred = model.predict(X_test)
+y_pred_classes = np.argmax(y_pred, axis=1)
+
+# Calculate accuracy
+accuracy = np.mean(y_pred_classes == y_test)
+print(f"Test Accuracy: {accuracy:.2%}")
+
+# Confusion matrix
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(y_test, y_pred_classes)
+
+# Plot confusion matrix
+import seaborn as sns
+plt.figure(figsize=(10, 8))
+sns.heatmap(cm, annot=True, xticklabels=classes, yticklabels=classes)
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
+```
+
+
+
