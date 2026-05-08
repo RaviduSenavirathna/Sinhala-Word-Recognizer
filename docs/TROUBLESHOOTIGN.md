@@ -215,3 +215,27 @@ for char in characters:
     processed_img_preview('dataset/ក/003.png')
     ```
 
+### Issue: "NoneType" error when reading image
+
+**Error Message:**
+```code
+AttributeError: 'NoneType' object has no attribute 'shape'
+```
+
+**Cause:** `cv2.imread() returned None (couldn't read file)`
+
+**Solution:**
+```python
+import cv2
+
+img_path = 'dataset/ක/image.png'
+img = cv2.imread(img_path)
+
+# Check if image loaded successfully
+if img is None:
+    print(f"Error: Could not read {img_path}")
+    print(f"File exists: {os.path.exists(img_path)}")
+else:
+    print(f"Image shape: {img.shape}")
+```
+
