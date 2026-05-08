@@ -86,3 +86,57 @@ conda install tensorflow opencv numpy matplotlib jupyter
 ```
 
 
+# Data & Preprocessing Issues
+
+### Issue: "File not found" or "Cannot read image"
+
+**Error Message:**
+```code
+ValueError: Image not found
+```
+
+**Causes:**
+- Wrong file path
+- File doesn't exist
+- Encoding issues
+
+**Solutions:**
+
+1. Check file path:
+    ```python
+    import os
+
+    # Verify path exists
+    path = 'dataset/ක/image.png'
+    print(os.path.exists(path))  # Should print: True
+    ```
+
+2. List available files:
+    ```python
+    import os
+
+    dataset_path = 'dataset'
+    for char in os.listdir(dataset_path):
+        char_path = os.path.join(dataset_path, char)
+        files = os.listdir(char_path)
+        print(f"{char}: {len(files)} files")
+    ```
+
+3. Use absolute path:
+    ```python
+    import os
+
+    img_path = os.path.abspath('dataset/ක/image.png')
+    img = cv2.imread(img_path)
+    ```
+
+4. For Colab - mount drive first:
+    ```python
+    from google.colab import drive
+    drive.mount('/content/drive')
+
+    img_path = '/content/drive/MyDrive/dataset/ක/image.png'
+    img = cv2.imread(img_path)
+    ```
+
+    
