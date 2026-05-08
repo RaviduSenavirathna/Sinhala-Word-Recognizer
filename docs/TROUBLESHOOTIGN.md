@@ -139,4 +139,79 @@ ValueError: Image not found
     img = cv2.imread(img_path)
     ```
 
-    
+### Issue: Dataset folder structure incorrect
+
+**Problem:**
+```code
+dataset/
+├── character1.png           ❌ Wrong: images in root
+├── character2.png
+└── character3.png
+```
+
+**Solution:**
+```code
+dataset/
+├── ක/                      ✓ Correct: folders per character
+│   ├── image1.png
+│   └── image2.png
+└── ග/
+    └── image1.png
+```
+
+**Script to reorganize:**
+```python
+import os
+import shutil
+from pathlib import Path
+
+# Create proper structure
+dataset_path = 'dataset_new'
+Path(dataset_path).mkdir(exist_ok=True)
+
+# Example: create character folders
+characters = ['ක', 'ග', 'ත', 'න', 'ප', 'ම', 'ර', 'ල', 'ස', 'හ']
+for char in characters:
+    Path(os.path.join(dataset_path, char)).mkdir(exist_ok=True)
+
+# Move/copy your images into appropriate folders
+```
+
+
+### Issue: Preprocessed images look bad (too dark/light, blurry)
+
+**Problem:**
+- Segmentation fails on bad preprocessed images
+- Low accuracy later
+
+**Solutions:**
+1. Adjust Gaussian blur:
+    ```python 
+    # In pre_processing.py, try different kernel sizes
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)  # Larger = more blur
+    # or
+    blur = cv2.GaussianBlur(gray, (3, 3), 1)  # Sigma helps too
+    ```
+
+2. Adjust threshold:
+    ```python
+    # Try manual threshold instead of Otsu
+    _, thresh = cv2.threshold(blur, 127, 255, cv2.THRESH_BINARY_INV)
+    # Adjust 127 based on image brightness
+    ```
+
+3. Check input images:
+    - Are originals clear and visible?
+    - High contrast (dark text on light background)?
+    - Reasonable resolution (400×400+)?
+
+4. Visualize preprocessing:
+    ```python
+    from pre_processing import processed_img_preview
+
+    # Check several samples
+    processed_img_preview('dataset/ක/001.png')
+    processed_img_preview('dataset/ක/002.png')
+    processed_img_preview('dataset/ក/003.png')
+    ```
+
