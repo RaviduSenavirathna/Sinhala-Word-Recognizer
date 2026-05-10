@@ -239,3 +239,98 @@ else:
     print(f"Image shape: {img.shape}")
 ```
 
+
+# Segmentation Issues
+
+### Issue: Over-segmentation (too many character fragments)
+
+**Problem:**
+- One character split into multiple pieces
+- Extra segments created
+
+**Example:**
+```code 
+Word: "ක" (one character)
+Result: [piece1, piece2, piece3]  ❌ Should be 1
+```
+
+**Solution - Increase threshold:**
+
+In `word_segmenting.ipynb`, find the line:
+```python
+threshold = 5  # Current value
+```
+
+Try larger values:
+```python
+threshold = 10  # Try this
+# or
+threshold = 15  # Or this
+```
+
+**Test threshold:**
+```python 
+def test_threshold(img, threshold):
+    projection = np.sum(img > 0, axis=0)
+    valleys = np.sum(projection < threshold)
+    print(f"Threshold {threshold}: {valleys} valleys found")
+
+img = cv2.imread('dataset_processed/ක/001.png', cv2.IMREAD_GRAYSCALE)
+for t in [3, 5, 10, 15, 20]:
+    test_threshold(img, t)
+```
+
+
+### Issue: Under-segmentation (characters merged together)
+
+**Problem:**
+- Multiple characters merged into one segment
+- Missing characters in output
+
+**Example:**
+```code 
+Word: "ක" + "ග" (two characters)
+Result: [merged_piece]  ❌ Should be 2
+```
+
+**Solution - Decrease threshold:**
+```python
+threshold = 2  # Try smaller value
+# or
+threshold = 1  # Even smaller
+```
+
+
+### Issue: Segmented characters have wrong size
+
+**Problem:**
+- Resize creates distorted characters
+- Characters stretched or compressed
+
+**Solution - Maintain aspect ratio:**
+```python
+# Current (might distort):
+char_resized = cv2.resize(char_img, (128, 128))
+
+# Better (maintains aspect ratio):
+def resize_with_aspect_ratio(img, size=128):
+    h, w = img.shape
+    aspect = w / h
+    
+    if aspect > 1:  # Wider than tall
+        new_w = size
+        new_h = int(size / aspect)
+    else:  # Taller than wide
+        new_h = size
+        new_w = int(size * aspect)
+    
+    resized = cv2.resize(img, (new_w, new_h))
+    
+    # Pad to 128×128
+    canvas = np.zeros((size, size), dtype=np.uint8)
+    y_offset = (size - new_h) // 2
+    x_offset = (size - new_w) // 2
+    canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = resized
+    
+    return canvas
+```
