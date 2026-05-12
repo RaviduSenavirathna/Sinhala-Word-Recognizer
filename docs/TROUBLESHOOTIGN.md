@@ -621,3 +621,71 @@ img = img / 255.0
 # Add batch and channel dims
 img = np.expand_dims(np.expand_dims(img, axis=0), axis=-1)
 ```
+
+
+# Performance Issues
+
+### Issue: Model accuracy very low (below 50%)
+
+**Causes:**
+- Poor quality data
+- Unbalanced dataset
+- Inadequate preprocessing
+- Model not trained long enough
+
+**Diagnosis Script:**
+```python
+import os
+import numpy as np
+
+# 1. Check class balance
+dataset_path = 'segmented_dataset'
+for char in sorted(os.listdir(dataset_path)):
+    count = len(os.listdir(os.path.join(dataset_path, char)))
+    print(f"{char}: {count}")  # Should be roughly similar
+
+# 2. Check image quality
+for char in sorted(os.listdir(dataset_path))[:2]:
+    sample_path = os.path.join(dataset_path, char, 
+                               os.listdir(os.path.join(dataset_path, char))[0])
+    img = cv2.imread(sample_path, cv2.IMREAD_GRAYSCALE)
+    
+    print(f"{char} image stats:")
+    print(f"  Shape: {img.shape}")
+    print(f"  Min: {img.min()}, Max: {img.max()}")
+    print(f"  Mean: {img.mean():.1f}")
+```
+
+**Improvements:**
+- Ensure balanced dataset (similar samples per character)
+- Clean dataset (remove corrupted/unclear images)
+- Train longer (increase epochs)
+- Use more training data
+
+
+### Issue: Model file is too large (100MB+)
+
+**Problem:**
+- Can't share/deploy model easily
+- Takes long to save/load
+
+**Solution - Quantization:**
+```python
+# Convert to TFLite (smaller, faster)
+converter = tf.lite.TFLiteConverter.from_saved_model('sinhala_model')
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
+tflite_model = converter.convert()
+
+with open('model.tflite', 'wb') as f:
+    f.write(tflite_model)
+
+# Check file size
+import os
+original_size = os.path.getsize('sinhala_model.h5') / (1024**2)
+tflite_size = os.path.getsize('model.tflite') / (1024**2)
+
+print(f"Original: {original_size:.1f} MB")
+print(f"Quantized: {tflite_size:.1f} MB")
+print(f"Reduction: {(1 - tflite_size/original_size)*100:.1f}%")
+```
+
