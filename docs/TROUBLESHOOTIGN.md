@@ -537,3 +537,87 @@ Validation accuracy: 30%  ❌ Large gap = overfitting
 - Remove layers
 - Reduce filter numbers
 - Use regularization: `kernel_regularizer=keras.regularizers.l2(0.001)`
+
+
+# Prediction Issues
+
+### Issue: "The saved model has an incompatible version"
+
+**Error Message:**
+```code
+ValueError: The saved model has an incompatible version
+```
+
+**Solution:**
+```python
+# Specify the version when loading
+model = tf.keras.models.load_model('sinhala_model.h5')
+
+# Or try newer format (save as folder)
+model.save('sinhala_model')  # Save as newer format
+
+# Then load:
+model = tf.keras.models.load_model('sinhala_model')
+```
+
+
+### Issue: Predictions always return same class
+
+**Problem:**
+- Model always predicts one character
+- Low confidence for all predictions
+- Model might not be trained properly
+
+**Solutions:**
+1. **Check model was trained:**
+    ```python
+    # Did the notebook actually train the model?
+    # Verify model weights are not random:
+    print(model.get_weights()[0].min())
+    print(model.get_weights()[0].max())
+    # Should not be all close to 0 or uniform
+    ```
+
+2. **Check input preprocessing:**
+    ```python
+    # Predictions use same preprocessing as training
+    # Verify normalization is correct
+    img = img / 255.0  # Values should be 0-1
+
+    print(np.min(img), np.max(img))  # Should be ~0-1
+    ```
+
+3. **Verify image format:**
+    ```python
+    # Images must be 128×128×1 (height, width, channels)
+    print(img.shape)  # Should be (128, 128, 1)
+
+    # Add batch dimension for prediction
+    img_batch = np.expand_dims(img, axis=0)
+    print(img_batch.shape)  # Should be (1, 128, 128, 1)
+    ```
+
+
+### Issue: Model crash when predicting with different image size
+
+**Error Message:**
+```code
+ValueError: Error when checking input: expected input_shape to be (None, 128, 128, 1)
+but found incompatible shape (None, 256, 256, 1)
+```
+
+**Solution:**
+```python
+# Always resize to 128×128
+img = cv2.resize(img, (128, 128))
+
+# Ensure it's grayscale
+if len(img.shape) == 3:
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+# Normalize
+img = img / 255.0
+
+# Add batch and channel dims
+img = np.expand_dims(np.expand_dims(img, axis=0), axis=-1)
+```
