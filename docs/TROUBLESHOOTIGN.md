@@ -334,3 +334,145 @@ def resize_with_aspect_ratio(img, size=128):
     
     return canvas
 ```
+
+
+# Training Issues
+
+### Issue: "Out of Memory" (OOM) error
+
+**Error Message:**
+```code
+tensorflow.python.framework.errors_impl.ResourceExhaustedError: 
+OOM when allocating tensor with shape [batch_size, ...]
+```
+
+**Causes:**
+- Batch size too large for available memory
+- GPU memory full (if using GPU)
+- Dataset too large
+
+**Solutions:**
+1. **Reduce batch size:**
+    ```python
+    # Current in model_training.ipynb
+    history = model.fit(
+        X_train, y_train,
+        batch_size=32,  # Try reducing
+        ...
+    )
+
+    # Try:
+    batch_size=16  # or 8
+    ```
+2. **Use Google Colab instead:**
+- Free GPU with more memory
+- Enable GPU: Runtime → Change runtime type → GPU
+
+3. **Reduce dataset size:**
+    ```python 
+    # Use only a subset for testing
+    X_train = X_train[:1000]  # First 1000 samples
+    y_train = y_train[:1000]
+    ```
+
+4. **Clear memory:**
+    ```python
+    import gc
+    gc.collect()  # Force garbage collection
+
+    # Or in Colab:
+    !nvidia-smi  # Check GPU memory
+    ```
+
+### Issue: Extremely slow training (hours for 1 epoch)
+
+**Problem:**
+- Training on CPU (very slow)
+- Dataset too large
+- GPU not being used
+
+**Solutions:**
+
+1. **Use GPU (Colab):**
+    ```python
+    # Check GPU availability
+    import tensorflow as tf
+    print(tf.config.list_physical_devices('GPU'))
+
+    # Output if GPU available:
+    # [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+    ```
+
+2. **Enable GPU in Colab:**
+    - Runtime → Change runtime type → Hardware accelerator → GPU
+
+3. **Reduce dataset:**
+    ```python 
+    # Use subset for testing
+    X_train = X_train[:10000]  # Use 10k samples
+    y_train = y_train[:10000]
+    ```
+
+4. **Reduce model complexity:**
+    ```python
+    # Simpler model (fewer layers/filters)
+    model = keras.Sequential([
+        keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(128, 128, 1)),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Conv2D(32, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Flatten(),
+        keras.layers.Dense(128, activation='relu'),
+        keras.layers.Dense(num_classes, activation='softmax')
+    ])
+    ```
+
+
+### Issue: Accuracy not improving (stuck at low value)
+
+**Problem:**
+- Training loss doesn't decrease
+- Validation accuracy stays at random levels (~10% for 10 classes)
+- Model not learning
+
+**Solutions:**
+1. **Check data loading:**
+    ```python
+    # Verify labels are one-hot encoded
+    print(y_train_encoded[0])  # Should have one 1 and rest 0s
+
+    # Verify image normalization
+    print(np.min(X_train), np.max(X_train))  # Should be 0-1
+    ```
+
+2. **Verify model compiles correctly:**
+    ```python
+    model.compile(
+        optimizer='adam',
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
+    ```
+
+3. **Check if data is shuffled:**
+    ```python
+    # If not shuffled, model might see same labels repeatedly
+    from sklearn.utils import shuffle
+    X_train, y_train = shuffle(X_train, y_train)
+    ```
+
+4. **Use learning rate decay:**
+    ```python
+    import tensorflow as tf
+
+    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+        initial_learning_rate=0.001,
+        decay_steps=1000,
+        decay_rate=0.96
+    )
+
+    optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy')
+    ```
+
+
