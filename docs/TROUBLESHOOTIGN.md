@@ -476,3 +476,64 @@ OOM when allocating tensor with shape [batch_size, ...]
     ```
 
 
+### Issue: Overfitting (high train accuracy, low validation accuracy)
+
+**Problem:**
+```code 
+Epoch 10/50
+Training accuracy: 95%
+Validation accuracy: 30%  ❌ Large gap = overfitting
+```
+
+**Solutions:**
+1. **Add dropout:**
+    ```python
+    model = keras.Sequential([
+        keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(128, 128, 1)),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Dropout(0.25),  # Add dropout
+        
+        keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        keras.layers.MaxPooling2D((2, 2)),
+        keras.layers.Dropout(0.25),
+        
+        keras.layers.Flatten(),
+        keras.layers.Dense(256, activation='relu'),
+        keras.layers.Dropout(0.5),
+        keras.layers.Dense(num_classes, activation='softmax')
+    ])
+    ```
+
+2. **Data augmentation:**
+    ```python
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+    datagen = ImageDataGenerator(
+        rotation_range=15,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        zoom_range=0.1
+    )
+
+    history = model.fit(
+        datagen.flow(X_train, y_train,batch_size=32), 
+        epochs=50, 
+        validation_data=(X_val, y_val)
+    )
+    ```
+
+3. **Early stopping:**
+    ```python
+    callback = keras.callbacks.EarlyStopping(
+        monitor='val_loss',
+        patience=5,
+        restore_best_weights=True
+    )
+
+    model.fit(..., callbacks=[callback], ...)
+    ```
+
+4. **Reduce model complexity:**
+- Remove layers
+- Reduce filter numbers
+- Use regularization: `kernel_regularizer=keras.regularizers.l2(0.001)`
