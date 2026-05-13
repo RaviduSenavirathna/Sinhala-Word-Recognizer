@@ -689,3 +689,22 @@ print(f"Quantized: {tflite_size:.1f} MB")
 print(f"Reduction: {(1 - tflite_size/original_size)*100:.1f}%")
 ```
 
+
+# Getting More Help
+
+1. Check documentation:
+    - [Getting Started]()
+    - [API Reference]()
+    - [Tutorial]()
+
+2. Search existing issues:
+    - https://github.com/RaviduSenavirathna/Sinhala-Word-Recognizer/issues
+
+3. Create new issue with:
+    - Error message (full traceback)
+    - Python version
+    - Environment (Colab / Local)
+    - Steps to reproduce
+    - Code snippet
+
+Good luck! Feel free to ask for help in GitHub issues.
